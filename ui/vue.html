@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ .Title }}</title>
+    <meta charset="utf-8">
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <!-- Default Kubernetes favicon (fallback) -->
+    <link rel="shortcut icon" type="image/png" href="https://kubernetes.io/images/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css">
+    <style>
+        html, body, #app, .v-application, .v-content {
+            background-color: black !important;
+            color: white !important;
+            margin: 0;
+        }
+        [v-cloak] { display: none; }
+
+        .hero-sheet {
+            background-color: black !important;
+            padding: 2rem 0;
+        }
+
+        .timeline-container {
+            padding: 0 1rem 2rem;
+            background-color: black !important;
+        }
+        /* tighten text to the dot */
+        .v-timeline-item__body {
+            padding-left: 8px !important;
+        }
+    </style>
+</head>
+<body>
+<div id="app" v-cloak>
+    <v-app dark>
+        <v-content>
+
+            <!-- HERO SECTION -->
+            <v-sheet class="hero-sheet">
+                <v-container>
+                    <v-layout column align-center>
+                        <img src="{{ .Logo }}" height="128"><br/>
+                        <h1 class="display-1 white--text mt-4 mb-2">
+                            Cluster is ${ info.cluster_health ? '' : 'not ' }healthy.
+                        </h1>
+                        <div class="subheading white--text">
+                            Cluster Status: <strong>${ info.cluster_status }</strong>, Served by: <strong>{{ .ServedBy }}</strong>
+                        </div>
+                    </v-layout>
+                </v-container>
+            </v-sheet>
+
+            <!-- TIMELINE GRID -->
+            <v-container fluid class="timeline-container">
+                <v-row dense>
+                    <v-col
+                            v-for="(node, name) in info.nodes_health_check"
+                            :key="name"
+                            cols="12"
+                            sm="4"
+                    >
+                        <v-timeline dense side="start" class="white--text">
+                            <v-timeline-item :color="node.node_health.ok ? tlColor1 : tlColor2">
+                                <div class="white--text">
+                                    <strong>Node:</strong> <strong>${ name }</strong><br>
+                                    <strong>State:</strong> ${ node.node_status.state }<br>
+                                </div>
+                            </v-timeline-item>
+                        </v-timeline>
+                    </v-col>
+                </v-row>
+            </v-container>
+
+            <!-- FOOTER -->
+            <v-footer class="black darken-2 white--text">
+                <v-container>
+                    <v-layout justify-center>
+<!--                        &copy; ${ new Date().getFullYear() } -->
+                    </v-layout>
+                </v-container>
+            </v-footer>
+
+        </v-content>
+    </v-app>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
+<script>
+    new Vue({
+        delimiters: ['${', '}'],
+        el: '#app',
+        vuetify: new Vuetify(),
+        data() {
+            return {
+                info: {},
+                timer: null,
+                tlColor1: 'light-green',
+                tlColor2: 'pink',
+            };
+        },
+        created() {
+            this.getInfo();
+            this.timer = setInterval(this.getInfo, 3000);
+        },
+        methods: {
+            getInfo() {
+                fetch('readyz')
+                    .then(r => r.json())
+                    .then(data => { this.info = data; })
+                    .catch(() => console.error('Fetch failed'));
+            },
+        },
+    });
+</script>
+</body>
+</html>

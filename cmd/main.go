@@ -81,6 +81,10 @@ func main() {
 }
 
 func livezHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
+
 	w.Header().Set("Content-Type", "application/json")
 
 	w.WriteHeader(http.StatusOK)
@@ -88,6 +92,10 @@ func livezHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func readyzHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
+
 	w.Header().Set("Content-Type", "application/json")
 	status := http.StatusOK
 	internalError := false
@@ -117,6 +125,10 @@ func readyzHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
+	w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "0")
+
 	uiPath := "./ui"
 	tmpl, err := template.New("vue.html").ParseFiles(path.Join(uiPath, "vue.html"))
 	if err != nil {

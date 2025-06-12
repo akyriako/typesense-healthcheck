@@ -47,7 +47,7 @@
                             Cluster is ${ info.cluster_health ? '' : 'not ' }healthy.
                         </h1>
                         <div class="subheading white--text">
-                            Cluster Status: <strong>${ info.cluster_status }</strong>
+                            Cluster Status: <strong>${ info.cluster_status }</strong> ↩ [${ lastFetched }]
                         </div>
                     </v-layout>
                 </v-container>
@@ -97,6 +97,7 @@
         data() {
             return {
                 info: {},
+                lastFetched: '',
                 timer: null,
                 tlColor1: 'light-green',
                 tlColor2: 'pink',
@@ -110,8 +111,12 @@
             getInfo() {
                 fetch('readyz')
                     .then(r => r.json())
-                    .then(data => { this.info = data; })
-                    .catch(() => console.error('Fetch failed'));
+                    .then(data => {
+                        this.info = data;
+                        // record the time of this successful fetch
+                        this.lastFetched = new Date().toLocaleString();
+                    })
+                    .catch(() => console.error('fetch failed'));
             },
         },
     });

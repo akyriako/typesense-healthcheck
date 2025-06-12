@@ -8,6 +8,7 @@ import (
 	healthcheck "github.com/akyriako/typesense-healthcheck"
 	"github.com/caarlos0/env/v11"
 	"html/template"
+	"k8s.io/client-go/rest"
 	"log/slog"
 	"net/http"
 	"os"
@@ -44,7 +45,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	hcClient = healthcheck.NewHealthCheckClient(config)
+	hcClient = healthcheck.NewHealthCheckClient(config, inCluster())
 
 	http.HandleFunc("/livez", livezHandler)
 	http.HandleFunc("/readyz", readyzHandler)
@@ -78,6 +79,11 @@ func main() {
 		os.Exit(-1)
 	}
 	logger.Info("server shut down successfully")
+}
+
+func inCluster() bool {
+	_, err := rest.InClusterConfig()
+	return err == nil
 }
 
 func livezHandler(w http.ResponseWriter, r *http.Request) {

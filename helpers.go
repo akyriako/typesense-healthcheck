@@ -19,9 +19,10 @@ type HealthCheckClient struct {
 	protocol    string
 	namespace   string
 	nodesPath   string
+	inCluster   bool
 }
 
-func NewHealthCheckClient(cfg Config) *HealthCheckClient {
+func NewHealthCheckClient(cfg Config, inCluster bool) *HealthCheckClient {
 	return &HealthCheckClient{
 		httpClient:  &http.Client{Timeout: 100 * time.Millisecond},
 		apiKey:      cfg.ApiKey,
@@ -30,6 +31,7 @@ func NewHealthCheckClient(cfg Config) *HealthCheckClient {
 		peeringPort: cfg.PeeringPort,
 		namespace:   cfg.Namespace,
 		nodesPath:   cfg.NodesPath,
+		inCluster:   inCluster,
 	}
 }
 
@@ -203,6 +205,10 @@ func (h *HealthCheckClient) getNodes() ([]string, error) {
 }
 
 func (h *HealthCheckClient) getNodeFullyQualifiedDomainName(node string) string {
+	if !h.inCluster {
+		return node
+	}
+
 	node = strings.Replace(node, fmt.Sprintf(":%d:%d", h.peeringPort, h.apiPort), "", 1)
 	fqdn := fmt.Sprintf("%s.%s.svc.cluster.local", node, h.namespace)
 

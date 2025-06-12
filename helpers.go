@@ -18,6 +18,7 @@ type HealthCheckClient struct {
 	peeringPort uint
 	protocol    string
 	namespace   string
+	nodesPath   string
 }
 
 func NewHealthCheckClient(cfg Config) *HealthCheckClient {
@@ -28,6 +29,7 @@ func NewHealthCheckClient(cfg Config) *HealthCheckClient {
 		apiPort:     cfg.ApiPort,
 		peeringPort: cfg.PeeringPort,
 		namespace:   cfg.Namespace,
+		nodesPath:   cfg.NodesPath,
 	}
 }
 
@@ -181,7 +183,7 @@ func (h *HealthCheckClient) GetClusterHealth(ctx context.Context) (ClusterHealth
 }
 
 func (h *HealthCheckClient) getNodes() ([]string, error) {
-	data, err := os.ReadFile("./cmd/nodes")
+	data, err := os.ReadFile(h.nodesPath)
 	if err != nil {
 		return nil, fmt.Errorf("reading node list: %w", err)
 	}
@@ -196,6 +198,7 @@ func (h *HealthCheckClient) getNodes() ([]string, error) {
 	for i, p := range nodes {
 		nodes[i] = strings.TrimSuffix(p, suffix)
 	}
+
 	return nodes, nil
 }
 

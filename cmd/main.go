@@ -89,24 +89,27 @@ func livezHandler(w http.ResponseWriter, r *http.Request) {
 
 func readyzHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	status := http.StatusOK
+	internalError := false
 
 	health, err := hcClient.GetClusterHealth(r.Context())
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("error getting cluster health"))
-		return
+		logger.Error(fmt.Sprintf("error getting cluster health: %v", err))
+		internalError = true
 	}
 
 	body, err := json.Marshal(health)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("error marshalling cluster health"))
-		return
+		logger.Error(fmt.Sprintf("error marshalling cluster health: %v", err))
+		internalError = true
 	}
 
-	status := http.StatusOK
 	if !health.ClusterHealth {
-		status = http.StatusServiceUnavailable
+		if internalError {
+			status = http.StatusInternalServerError
+		} else {
+			status = http.StatusServiceUnavailable
+		}
 	}
 
 	w.WriteHeader(status)
@@ -117,27 +120,23 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	uiPath := "./ui"
 	tmpl, err := template.New("vue.html").ParseFiles(path.Join(uiPath, "vue.html"))
 	if err != nil {
+		logger.Error(fmt.Sprintf("error parsing template: %v", err))
+
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(path.Join(uiPath, "vue.html") + err.Error()))
 		return
 	}
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		hostname = "unknown"
-	}
-
 	data := struct {
-		Title    string
-		Logo     string
-		ServedBy string
+		Title string
+		Logo  string
 	}{
-		Title:    "Typesense Healthcheck",
-		Logo:     config.Logo,
-		ServedBy: hostname,
+		Title: "Typesense Healthcheck",
+		Logo:  config.Logo,
 	}
 
 	if err := tmpl.Execute(w, data); err != nil {
+		logger.Error(fmt.Sprintf("error executing template: %v", err))
 		http.Error(w, path.Join(uiPath, "vue.html")+err.Error(), http.StatusInternalServerError)
 	}
 }

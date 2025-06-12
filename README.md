@@ -3,6 +3,8 @@
 A lightweight Go service that continuously checks the health of a Typesense cluster, provisioned by https://github.com/akyriako/typesense-operator, and exposes both a JSON-based API 
 and a built-in web UI for visualizing node status in real time.
 
+![image](https://github.com/user-attachments/assets/41530dcb-19b5-4b89-920c-69d7b3b7bb6f)
+
 ## Features
 
 ### Cluster readiness & liveness:

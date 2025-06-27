@@ -11,10 +11,10 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o typesense-healthcheck ./cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -o typesense-healthcheck ./cmd
 
 # Stage 2: Package
-FROM alpine:3.18
+FROM alpine:3.21
 
 # Install certificates for HTTPS
 RUN apk --no-cache add ca-certificates

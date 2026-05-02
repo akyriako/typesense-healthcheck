@@ -3,7 +3,7 @@
 A lightweight Go service that reports the aggregated health status of a Typesense cluster and exposes both a JSON-based API 
 and a built-in web UI for visualizing node status in real time.
 
-![image](https://github.com/user-attachments/assets/42db73c4-f175-4fb5-a862-ec83ace6ada7)
+<img width="1409" height="948" alt="image" src="https://github.com/user-attachments/assets/2fd139d5-9f1b-4d3b-889b-7c9843fac15c" />
 
 ## Features
 
@@ -93,10 +93,10 @@ and a built-in web UI for visualizing node status in real time.
 
 ### Web UI
 
-Interactive single-page Vue.js + Vuetify application inspired (sic!) by [podinfo](https://github.com/stefanprodan/podinfo) landing page.
+An interactive single-page Vue.js + Vuetify application:
 
 * Auto-refresh every 3 seconds.
-* Color-coded status indicators per node.
+* Color-coded status indicators per node (Color-blind friendly)
 
 ## Configuration 
 

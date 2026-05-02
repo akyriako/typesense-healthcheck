@@ -1,10 +1,10 @@
 # Configuration variables
 REGISTRY ?= akyriako78#$(shell docker info | sed '/Username:/!d;s/.* //')
 IMAGE_NAME ?= typesense-healthcheck
-TAG ?= 0.1.8
+TAG ?= 0.1.9-dev.2
 DOCKERFILE ?= Dockerfile
 PLATFORMS ?= linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
-DOCKERX_BUILDER ?= typesense-prometheus-exporter-builder
+DOCKERX_BUILDER ?= typesense-healthcheck-builder
 
 # Build binary
 build:
@@ -21,6 +21,10 @@ docker-builder:
 docker-build: docker-builder
 	@echo "Building Docker image..."
 	docker buildx build --load --builder ${DOCKERX_BUILDER} -t $(REGISTRY)/$(IMAGE_NAME):$(TAG) -f $(DOCKERFILE) .
+
+docker-combo: docker-builder
+	@echo "Building Docker image..."
+	docker buildx build --load --push --builder ${DOCKERX_BUILDER} -t $(REGISTRY)/$(IMAGE_NAME):$(TAG) -f $(DOCKERFILE) .
 
 # Push Docker image
 docker-push: docker-builder

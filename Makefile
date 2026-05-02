@@ -1,7 +1,7 @@
 # Configuration variables
-REGISTRY ?= akyriako78#$(shell docker info | sed '/Username:/!d;s/.* //')
+REGISTRY ?= quay.io/akyriako#$(shell docker info | sed '/Username:/!d;s/.* //')
 IMAGE_NAME ?= typesense-healthcheck
-TAG ?= 0.1.9-dev.2
+TAG ?= 0.1.9-rc.2
 DOCKERFILE ?= Dockerfile
 PLATFORMS ?= linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
 DOCKERX_BUILDER ?= typesense-healthcheck-builder

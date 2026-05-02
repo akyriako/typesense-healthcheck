@@ -111,6 +111,10 @@
             text-transform: uppercase;
         }
 
+        .version {
+            font-size: 11px;
+        }
+
         h1 {
             margin: 0;
             font-size: clamp(34px, 6vw, 72px);
@@ -362,12 +366,19 @@
             border-radius: 6px;
             border: 1px solid var(--border);
             font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .health-status,
+        .health-status.ok,
+        .health-status.error {
+            border: none;
         }
 
         .health-status.ok {
             background: var(--leader-soft);
             border-color: var(--leader);
-            color: #a5f3fc;
+            color: lightgreen;
         }
 
         .health-status.error {
@@ -430,7 +441,7 @@
                     <img class="logo" src="{{ .Logo }}" alt="Logo" />
                     <div>
                         <div class="eyebrow">{{ .Title }}</div>
-                        <strong>v0.1.9</strong>
+                        <strong class="version">v0.1.9</strong>
                     </div>
                 </div>
 
@@ -448,14 +459,14 @@
 
             <div class="stats">
                 <div class="stat">
-                    <div class="stat-label">Cluster status</div>
+                    <div class="stat-label">Cluster Status</div>
                     <div class="stat-value" :class="getClusterStatusValueClass">
                         ${ info.cluster_status || 'UNKNOWN' }
                     </div>
                 </div>
 
                 <div class="stat">
-                    <div class="stat-label">Nodes healthy</div>
+                    <div class="stat-label">Healthy Nodes</div>
                     <div class="stat-value">${ healthyCount } / ${ nodeCount }</div>
                 </div>
 
@@ -465,7 +476,7 @@
                 </div>
 
                 <div class="stat">
-                    <div class="stat-label">Last check</div>
+                    <div class="stat-label">Last Check</div>
                     <div class="stat-value">${ lastFetched || 'Waiting…' }</div>
                 </div>
             </div>
@@ -535,9 +546,9 @@
             Waiting for node health data…
         </section>
 
-        <footer class="footer">
-            typesense-healthcheck · live cluster status
-        </footer>
+<!--        <footer class="footer">-->
+<!--            typesense-healthcheck · live cluster status-->
+<!--        </footer>-->
     </main>
 </div>
 
@@ -612,7 +623,7 @@
                     return 'Cluster is healthy.';
                 }
                 if (status === 'OK') {
-                    return 'Cluster is operational.';
+                    return 'Cluster is degraded.';
                 }
                 if (status === 'SPLIT_BRAIN') {
                     return 'Split brain detected!';
@@ -654,6 +665,9 @@
                         }, data || {});
 
                         this.lastFetched = new Date().toLocaleTimeString([], {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
                             hour: '2-digit',
                             minute: '2-digit',
                             second: '2-digit',
@@ -668,6 +682,9 @@
                             nodes_health_check: this.info.nodes_health_check || {},
                         });
                         this.lastFetched = new Date().toLocaleTimeString([], {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
                             hour: '2-digit',
                             minute: '2-digit',
                             second: '2-digit',

@@ -44,7 +44,7 @@ jobs:
             VERSION="${GITHUB_REF_NAME#v}"
             TAGS="${IMAGE_NAME}:${VERSION},${IMAGE_NAME}:latest"
           else
-            VERSION="${BASE_VERSION}-dev.${GITHUB_RUN_NUMBER}"
+            VERSION="${BASE_VERSION}-rc.${GITHUB_RUN_NUMBER}"
             TAGS="${IMAGE_NAME}:${VERSION}"
           fi
 
@@ -96,4 +96,4 @@ jobs:
           tag_name: ${{ steps.meta.outputs.version }}
           name: ${{ steps.meta.outputs.version }}
           generate_release_notes: true
-          prerelease: ${{ contains(steps.meta.outputs.version, 'dev') }}
+          prerelease: ${{ contains(steps.meta.outputs.version, 'rc') }}

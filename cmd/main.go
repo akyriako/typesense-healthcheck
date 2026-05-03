@@ -67,7 +67,7 @@ func main() {
 	server := &http.Server{Addr: fmt.Sprintf(":%d", config.HealthCheckPort)}
 
 	go func() {
-		logger.Info("starting typesense healthcheck server...", "port", config.HealthCheckPort)
+		logger.Info("starting typesense healthcheck server...", "port", config.HealthCheckPort, "version", version.Version, "commit", version.Commit)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error(fmt.Sprintf("error starting server: %v", err))
 			os.Exit(-1)

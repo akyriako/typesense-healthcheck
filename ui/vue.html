@@ -1,122 +1,696 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <title>{{ .Title }}</title>
-    <meta charset="utf-8">
-    <!-- Favicon -->
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-    <!-- Default Kubernetes favicon (fallback) -->
-    <link rel="shortcut icon" type="image/png" href="https://kubernetes.io/images/favicon.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css">
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" type="image/png" href="https://kubernetes.io/images/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <style>
-        html, body, #app, .v-application, .v-content {
-            background-color: black !important;
-            color: white !important;
-            margin: 0;
+        :root {
+            --bg: #09090b;
+            --panel: rgba(24, 24, 27, .78);
+            --border: rgba(255,255,255,.10);
+            --text: #fafafa;
+            --muted: #a1a1aa;
+
+            /* Colorblind-friendly colors */
+            --leader: lightgreen;
+            --leader-soft: rgba(6,182,212,.14);
+            --follower: #0ea5e9;
+            --follower-soft: rgba(14,165,233,.14);
+            --candidate: #8b5cf6;
+            --candidate-soft: rgba(139,92,246,.14);
+            --not-ready: #f59e0b;
+            --not-ready-soft: rgba(245,158,11,.16);
+            --error: #dc2626;
+            --error-soft: rgba(220,38,38,.14);
+            --unreachable: #f59e0b;
+            --unreachable-soft: rgba(245,158,11,.16);
+            --resource-warning: #ec4899;
+            --resource-warning-soft: rgba(236,72,153,.14);
+
+            --radius: 22px;
+            --shadow: 0 24px 80px rgba(0,0,0,.45);
         }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            background:
+                    radial-gradient(circle at top left, rgba(6,182,212,.16), transparent 32rem),
+                    radial-gradient(circle at top right, rgba(245,158,11,.12), transparent 28rem),
+                    var(--bg);
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        code {
+            color: #e4e4e7;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.85em;
+        }
+
         [v-cloak] { display: none; }
 
-        .hero-sheet {
-            background-color: black !important;
-            padding: 2rem 0;
+        .shell {
+            width: min(1280px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 40px 0 28px;
         }
 
-        .timeline-container {
-            padding: 0 1rem 2rem;
-            background-color: black !important;
+        .hero {
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            background:
+                    linear-gradient(135deg, rgba(255,255,255,.09), rgba(255,255,255,.03)),
+                    var(--panel);
+            box-shadow: var(--shadow);
+            padding: 32px;
+            backdrop-filter: blur(18px);
         }
-        /* tighten text to the dot */
-        .v-timeline-item__body {
-            padding-left: 8px !important;
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 38px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            object-fit: contain;
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--border);
+            padding: 7px;
+        }
+
+        .eyebrow {
+            color: var(--muted);
+            font-size: 13px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .version {
+            font-size: 11px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(34px, 6vw, 72px);
+            line-height: .95;
+            letter-spacing: -.06em;
+        }
+
+        .hero-copy {
+            margin: 18px 0 0;
+            color: var(--muted);
+            font-size: 16px;
+            max-width: 720px;
+            line-height: 1.7;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            background: rgba(255,255,255,.05);
+            color: var(--text);
+            font-size: 13px;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            box-shadow: 0 0 0 5px rgba(255,255,255,.05);
+        }
+
+        .pill.leader .dot { background: var(--leader); box-shadow: 0 0 0 5px var(--leader-soft); }
+        .pill.follower .dot { background: var(--follower); box-shadow: 0 0 0 5px var(--follower-soft); }
+        .pill.candidate .dot { background: var(--candidate); box-shadow: 0 0 0 5px var(--candidate-soft); }
+        .pill.not-ready .dot { background: var(--not-ready); box-shadow: 0 0 0 5px var(--not-ready-soft); }
+        .pill.error .dot { background: var(--error); box-shadow: 0 0 0 5px var(--error-soft); }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 28px;
+        }
+
+        .stat {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: rgba(9,9,11,.38);
+            padding: 18px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -.03em;
+        }
+
+        .stat-value.status-ok { color: var(--leader); }
+        .stat-value.status-degraded { color: var(--not-ready); }
+        .stat-value.status-unhealthy { color: var(--error); }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 18px;
+            margin: 34px 0 14px;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .section-head p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+            max-width: 560px;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.leader { background: var(--leader); }
+        .legend-dot.follower { background: var(--follower); }
+        .legend-dot.candidate { background: var(--candidate); }
+        .legend-dot.not-ready { background: var(--not-ready); }
+        .legend-dot.error { background: var(--error); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 14px;
+        }
+
+        .node {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--panel);
+            padding: 18px;
+            box-shadow: 0 14px 45px rgba(0,0,0,.22);
+            transition: all 0.2s ease;
+        }
+
+        .node:hover {
+            border-color: rgba(255,255,255,.15);
+            box-shadow: 0 20px 60px rgba(0,0,0,.35);
+        }
+
+        .node::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 4px;
+            background: var(--muted);
+            transition: background-color 0.2s ease;
+        }
+
+        .node.leader::before { background: var(--leader); }
+        .node.follower::before { background: var(--follower); }
+        .node.candidate::before { background: var(--candidate); }
+        .node.not-ready::before { background: var(--not-ready); }
+        .node.error::before { background: var(--error); }
+        .node.unreachable::before { background: var(--unreachable); }
+
+        .node-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .node-name {
+            font-size: 16px;
+            font-weight: 700;
+            word-break: break-word;
+            color: var(--text);
+        }
+
+        .node-badge {
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,.05);
+            color: var(--text);
+            white-space: nowrap;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .node.leader .node-badge {
+            color: #a5f3fc;
+            background: var(--leader-soft);
+            border-color: var(--leader);
+        }
+
+        .node.follower .node-badge {
+            color: #7ee8fc;
+            background: var(--follower-soft);
+            border-color: var(--follower);
+        }
+
+        .node.candidate .node-badge {
+            color: #e9d5ff;
+            background: var(--candidate-soft);
+            border-color: var(--candidate);
+        }
+
+        .node.not-ready .node-badge {
+            color: #fde68a;
+            background: var(--not-ready-soft);
+            border-color: var(--not-ready);
+        }
+
+        .node.error .node-badge {
+            color: #fecaca;
+            background: var(--error-soft);
+            border-color: var(--error);
+        }
+
+        .node-body {
+            display: grid;
+            gap: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            background: rgba(255,255,255,.03);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .info-label {
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: var(--text);
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-weight: 500;
+        }
+
+        .health-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(255,255,255,.03);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .health-status,
+        .health-status.ok,
+        .health-status.error {
+            border: none;
+        }
+
+        .health-status.ok {
+            background: var(--leader-soft);
+            border-color: var(--leader);
+            color: lightgreen;
+        }
+
+        .health-status.error {
+            background: var(--resource-warning-soft);
+            border-color: var(--resource-warning);
+            color: #f472b6;
+        }
+
+        .health-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .empty {
+            border: 1px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 26px;
+            color: var(--muted);
+            text-align: center;
+            background: rgba(255,255,255,.03);
+        }
+
+        .footer {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 26px;
+            text-align: center;
+        }
+
+        @media (max-width: 900px) {
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .section-head { flex-direction: column; align-items: flex-start; }
+        }
+
+        @media (max-width: 720px) {
+            .shell { width: min(100% - 20px, 1280px); padding-top: 16px; }
+            .hero { padding: 22px; }
+            .topbar { align-items: flex-start; flex-direction: column; }
+            .stats { grid-template-columns: 1fr; }
+            .grid { grid-template-columns: 1fr; }
+            .legend { flex-direction: column; }
         }
     </style>
 </head>
+
 <body>
 <div id="app" v-cloak>
-    <v-app dark>
-        <v-content>
+    <main class="shell">
+        <section class="hero">
+            <div class="topbar">
+                <div class="brand">
+                    <img class="logo" src="{{ .Logo }}" alt="Logo" />
+                    <div>
+                        <div class="eyebrow">{{ .Title }}</div>
+                        <strong class="version">v0.1.9</strong>
+                    </div>
+                </div>
 
-            <!-- HERO SECTION -->
-            <v-sheet class="hero-sheet">
-                <v-container>
-                    <v-layout column align-center>
-                        <img src="{{ .Logo }}" height="128"><br/>
-                        <h1 class="display-1 white--text mt-4 mb-2">
-                            Cluster is ${ info.cluster_health ? '' : 'not ' }healthy.
-                        </h1>
-                        <div class="subheading white--text">
-                            Cluster Status: <strong>${ info.cluster_status }</strong> ↩ [${ lastFetched }]
-                        </div>
-                    </v-layout>
-                </v-container>
-            </v-sheet>
+                <div class="pill" :class="getClusterStatusClass">
+                    <span class="dot"></span>
+                    ${ getClusterStatusLabel }
+                </div>
+            </div>
 
-            <!-- TIMELINE GRID -->
-            <v-container fluid class="timeline-container">
-                <v-row dense>
-                    <v-col
-                            v-for="(node, name) in info.nodes_health_check"
-                            :key="name"
-                            cols="12"
-                            sm="4"
-                    >
-                        <v-timeline dense side="start" class="white--text">
-                            <v-timeline-item :color="node.node_health.ok ? tlColor1 : tlColor2">
-                                <div class="white--text">
-                                    <strong>Node:</strong> <strong>${ name }</strong><br>
-                                    <strong>State:</strong> ${ node.node_status.state }<br>
-                                </div>
-                            </v-timeline-item>
-                        </v-timeline>
-                    </v-col>
-                </v-row>
-            </v-container>
+            <h1>${ getClusterHeadline }</h1>
 
-            <!-- FOOTER -->
-            <v-footer class="black darken-2 white--text">
-                <v-container>
-                    <v-layout justify-center>
-<!--                        &copy; ${ new Date().getFullYear() } -->
-                    </v-layout>
-                </v-container>
-            </v-footer>
+            <p class="hero-copy">
+                Real-time cluster and node health status. Polling every 3 seconds
+            </p>
 
-        </v-content>
-    </v-app>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-label">Cluster Status</div>
+                    <div class="stat-value" :class="getClusterStatusValueClass">
+                        ${ info.cluster_status || 'UNKNOWN' }
+                    </div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-label">Healthy Nodes</div>
+                    <div class="stat-value">${ healthyCount } / ${ nodeCount }</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-label">Leaders</div>
+                    <div class="stat-value">${ leaderCount }</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-label">Last Check</div>
+                    <div class="stat-value">${ lastFetched || 'Waiting…' }</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-head">
+            <div>
+                <h2>Nodes</h2>
+                <div class="legend">
+                    <div class="legend-item">
+                        <span class="legend-dot leader"></span> Leader
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot follower"></span> Follower
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot candidate"></span> Candidate
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot not-ready"></span> Not Ready
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-dot error"></span> Error
+                    </div>
+                </div>
+            </div>
+
+            <div class="pill">Refresh: 3s</div>
+        </div>
+
+        <section v-if="nodeCount" class="grid">
+            <article
+                    v-for="(node, name) in nodes"
+                    :key="name"
+                    class="node"
+                    :class="getNodeClass(node)"
+            >
+                <div class="node-head">
+                    <div class="node-name">${ name.split('.')[0] }</div>
+                    <div class="node-badge">${ getNodeState(node) }</div>
+                </div>
+
+                <div class="node-body">
+                    <div class="info-row">
+                        <span class="info-label">Committed Index:</span>
+                        <span class="info-value">${ node.node_status.committed_index }</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Queued Writes:</span>
+                        <span class="info-value">${ node.node_status.queued_writes }</span>
+                    </div>
+
+                    <div :class="['health-status', node.node_health.ok ? 'ok' : 'error']">
+                        <span class="health-dot"></span>
+                        <span v-if="node.node_health.ok">Healthy</span>
+                        <span v-else-if="node.node_health.resource_error">
+                            Resource: ${ node.node_health.resource_error }
+                        </span>
+                        <span v-else>Unhealthy</span>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section v-else class="empty">
+            Waiting for node health data…
+        </section>
+
+<!--        <footer class="footer">-->
+<!--            typesense-healthcheck · live cluster status-->
+<!--        </footer>-->
+    </main>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
 <script>
     new Vue({
         delimiters: ['${', '}'],
         el: '#app',
-        vuetify: new Vuetify(),
+
         data() {
             return {
-                info: {},
+                info: {
+                    cluster_status: 'UNKNOWN',
+                    cluster_health: false,
+                    nodes_health_check: {},
+                },
                 lastFetched: '',
                 timer: null,
-                tlColor1: 'light-green',
-                tlColor2: 'pink',
             };
         },
+
+        computed: {
+            nodes() {
+                return this.info.nodes_health_check || {};
+            },
+
+            nodeCount() {
+                return Object.keys(this.nodes).length;
+            },
+
+            leaderCount() {
+                return Object.values(this.nodes).filter(n => n.node_status.state === 'LEADER').length;
+            },
+
+            healthyCount() {
+                return Object.values(this.nodes).filter(n => n.node_health.ok).length;
+            },
+
+            getClusterStatusClass() {
+                const status = this.info.cluster_status;
+                if (status === 'OK') return 'leader';
+                if (status === 'SPLIT_BRAIN') return 'error';
+                if (status === 'ELECTION_DEADLOCK') return 'not-ready';
+                return 'not-ready';
+            },
+
+            getClusterStatusLabel() {
+                if (!this.lastFetched) return 'Checking';
+
+                const status = this.info.cluster_status;
+                switch(status) {
+                    case 'OK': return 'Operational';
+                    case 'SPLIT_BRAIN': return 'Split Brain';
+                    case 'ELECTION_DEADLOCK': return 'Election Deadlock';
+                    case 'NOT_READY': return 'Not Ready';
+                    default: return status || 'Unknown';
+                }
+            },
+
+            getClusterStatusValueClass() {
+                const status = this.info.cluster_status;
+                if (status === 'OK') return 'status-ok';
+                if (status === 'NOT_READY') return 'status-degraded';
+                return 'status-unhealthy';
+            },
+
+            getClusterHeadline() {
+                if (!this.lastFetched) return 'Checking cluster…';
+
+                const status = this.info.cluster_status;
+                if (status === 'OK' && this.info.cluster_health) {
+                    return 'Cluster is healthy.';
+                }
+                if (status === 'OK') {
+                    return 'Cluster is degraded.';
+                }
+                if (status === 'SPLIT_BRAIN') {
+                    return 'Split brain detected!';
+                }
+                if (status === 'ELECTION_DEADLOCK') {
+                    return 'Election deadlock.';
+                }
+                return 'Cluster is not ready.';
+            },
+        },
+
         created() {
             this.getInfo();
             this.timer = setInterval(this.getInfo, 3000);
         },
+
+        beforeDestroy() {
+            if (this.timer) clearInterval(this.timer);
+        },
+
         methods: {
+            getNodeState(node) {
+                return node.node_status.state || 'UNKNOWN';
+            },
+
+            getNodeClass(node) {
+                const state = this.getNodeState(node);
+                return state.toLowerCase().replace('_', '-');
+            },
+
             getInfo() {
-                fetch('readyz')
+                fetch('readyz', { cache: 'no-store' })
                     .then(r => r.json())
-                    .then(data => {
-                        this.info = data;
-                        // record the time of this successful fetch
-                        this.lastFetched = new Date().toLocaleString();
+                    .then((data) => {
+                        this.info = Object.assign({
+                            cluster_status: 'UNKNOWN',
+                            cluster_health: false,
+                            nodes_health_check: {},
+                        }, data || {});
+
+                        this.lastFetched = new Date().toLocaleTimeString([], {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: false
+                        });
                     })
-                    .catch(() => console.error('fetch failed'));
+                    .catch((err) => {
+                        console.error('fetch failed', err);
+                        this.info = Object.assign({}, this.info, {
+                            cluster_status: 'UNKNOWN',
+                            cluster_health: false,
+                            nodes_health_check: this.info.nodes_health_check || {},
+                        });
+                        this.lastFetched = new Date().toLocaleTimeString([], {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: false
+                        });
+                    });
             },
         },
     });

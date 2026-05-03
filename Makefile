@@ -1,5 +1,5 @@
 # Configuration variables
-REGISTRY ?= akyriako78#$(shell docker info | sed '/Username:/!d;s/.* //')
+REGISTRY ?= quay.io/akyriako#$(shell docker info | sed '/Username:/!d;s/.* //')
 IMAGE_NAME ?= typesense-healthcheck
 TAG ?= 0.2.0
 DOCKERFILE ?= Dockerfile
@@ -40,6 +40,10 @@ docker-builder:
 docker-build: docker-builder
 	@echo "Building Docker image..."
 	docker buildx build --load --builder ${DOCKERX_BUILDER} -t $(REGISTRY)/$(IMAGE_NAME):$(TAG) -f $(DOCKERFILE) .
+
+docker-combo: docker-builder
+	@echo "Building Docker image..."
+	docker buildx build --load --push --builder ${DOCKERX_BUILDER} -t $(REGISTRY)/$(IMAGE_NAME):$(TAG) -f $(DOCKERFILE) .
 
 # Push Docker image
 docker-push: docker-builder

@@ -69,3 +69,18 @@ jobs:
             DATE=${{ steps.meta.outputs.date }}
             BUILT_BY=github-actions
             DIRTY=false
+
+      - name: Create git tag
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git tag ${{ steps.meta.outputs.version }}
+          git push origin ${{ steps.meta.outputs.version }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.version }}
+          name: Release ${{ steps.meta.outputs.version }}
+          generate_release_notes: true
+          prerelease: ${{ contains(steps.meta.outputs.version, 'dev') }}

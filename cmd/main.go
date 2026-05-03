@@ -5,16 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	healthcheck "github.com/akyriako/typesense-healthcheck"
-	"github.com/caarlos0/env/v11"
 	"html/template"
-	"k8s.io/client-go/rest"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
 	"path"
 	"syscall"
+
+	healthcheck "github.com/akyriako/typesense-healthcheck"
+	"github.com/akyriako/typesense-healthcheck/internal/version"
+	"github.com/caarlos0/env/v11"
+	"k8s.io/client-go/rest"
 )
 
 var (
@@ -50,6 +52,7 @@ func main() {
 	http.HandleFunc("/livez", livezHandler)
 	http.HandleFunc("/readyz", readyzHandler)
 	http.HandleFunc("/", indexHandler)
+	http.HandleFunc("/version", versionHandler)
 
 	go func() {
 		sigChan := make(chan os.Signal, 1)
@@ -157,4 +160,16 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error(fmt.Sprintf("error executing template: %v", err))
 		http.Error(w, path.Join(uiPath, "vue.html")+err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func versionHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"version": version.Version,
+		"commit":  version.Commit,
+		"date":    version.Date,
+		"builtBy": version.BuiltBy,
+		"dirty":   version.Dirty,
+	})
 }

@@ -149,11 +149,15 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := struct {
-		Title string
-		Logo  string
+		Title   string
+		Logo    string
+		Version string
+		Commit  string
 	}{
-		Title: "Typesense Healthcheck",
-		Logo:  config.Logo,
+		Title:   "Typesense Healthcheck",
+		Logo:    config.Logo,
+		Version: version.Version,
+		Commit:  version.Commit,
 	}
 
 	if err := tmpl.Execute(w, data); err != nil {

@@ -20,17 +20,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Read base version from Makefile
+        id: base_version
+        run: |
+          BASE_VERSION="$(make -pn | awk '/^TAG[ ?]*=/ {print $3; exit}')"
+          echo "base_version=${BASE_VERSION}" >> "$GITHUB_OUTPUT"
+
       - name: Set build metadata
         id: meta
         run: |
           DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           COMMIT="${GITHUB_SHA::7}"
+          BASE_VERSION="${{ steps.base_version.outputs.base_version }}"
 
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
             TAGS="${IMAGE_NAME}:${VERSION},${IMAGE_NAME}:latest"
           else
-            VERSION="0.1.8-dev.${GITHUB_RUN_NUMBER}"
+            VERSION="${BASE_VERSION}-dev.${GITHUB_RUN_NUMBER}"
             TAGS="${IMAGE_NAME}:${VERSION}"
           fi
 

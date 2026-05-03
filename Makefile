@@ -21,39 +21,41 @@ LDFLAGS := -s -w \
 	-X 'github.com/akyriako/typesense-healthcheck/internal/version.BuiltBy=$(BUILT_BY)' \
 	-X 'github.com/akyriako/typesense-healthcheck/internal/version.Dirty=$(DIRTY)'
 
+DOCKER_BUILD_ARGS := \
+	--build-arg VERSION=$(VERSION) \
+	--build-arg COMMIT=$(COMMIT) \
+	--build-arg DATE=$(DATE) \
+	--build-arg BUILT_BY=$(BUILT_BY) \
+	--build-arg DIRTY=$(DIRTY)
+
 build:
 	@echo "Building Go binary with flags..."
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "$(LDFLAGS)" -o cmd/typesense-healthcheck ./cmd
 
-## Build binary
-#build:
-#	@echo "Building Go binary..."
-#	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o cmd/typesense-healthcheck ./cmd
-
-# Build a docker builder
 docker-builder:
 	@echo "Creating buildx builder..."
 	docker buildx create --name ${DOCKERX_BUILDER} || true
 	docker buildx inspect --builder ${DOCKERX_BUILDER} --bootstrap
 
-# Build Docker image
 docker-build: docker-builder
-	@echo "Building Docker image..."
-	docker buildx build --load --builder ${DOCKERX_BUILDER} -t $(REGISTRY)/$(IMAGE_NAME):$(TAG) -f $(DOCKERFILE) .
+	@echo "Building Docker image $(REGISTRY)/$(IMAGE_NAME):$(VERSION)..."
+	docker buildx build --load \
+		--builder ${DOCKERX_BUILDER} \
+		$(DOCKER_BUILD_ARGS) \
+		-t $(REGISTRY)/$(IMAGE_NAME):$(VERSION) \
+		-f $(DOCKERFILE) .
 
-docker-combo: docker-builder
-	@echo "Building Docker image..."
-	docker buildx build --load --push --builder ${DOCKERX_BUILDER} -t $(REGISTRY)/$(IMAGE_NAME):$(TAG) -f $(DOCKERFILE) .
-
-# Push Docker image
 docker-push: docker-builder
-	@echo "Pushing Docker image to registry..."
-	docker buildx build --push --builder ${DOCKERX_BUILDER} --platform ${PLATFORMS}  -t $(REGISTRY)/$(IMAGE_NAME):$(TAG) -f $(DOCKERFILE) .
+	@echo "Pushing Docker image $(REGISTRY)/$(IMAGE_NAME):$(VERSION)..."
+	docker buildx build --push \
+		--builder ${DOCKERX_BUILDER} \
+		--platform ${PLATFORMS} \
+		$(DOCKER_BUILD_ARGS) \
+		-t $(REGISTRY)/$(IMAGE_NAME):$(VERSION) \
+		-f $(DOCKERFILE) .
 
-# Clean up
 clean:
 	@echo "Cleaning up..."
 	rm -f cmd/typesense-healthcheck
 
-# Default target
-.PHONY: build docker-build docker-push clean
+.PHONY: build docker-builder docker-build docker-push clean

@@ -6,6 +6,9 @@ on:
       - main
     tags:
       - "v*.*.*"
+    paths-ignore:
+      - '**/README.md'
+      - "**/.github/workflows/**"
   workflow_dispatch:
 
 permissions:

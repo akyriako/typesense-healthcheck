@@ -40,12 +40,14 @@ jobs:
           COMMIT="${GITHUB_SHA::7}"
           BASE_VERSION="${{ steps.base_version.outputs.base_version }}"
 
+          IMAGE="${REGISTRY}/${IMAGE_NAME}"
+
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
-            TAGS="${IMAGE_NAME}:${VERSION},${IMAGE_NAME}:latest"
+            TAGS="${IMAGE}:${VERSION},${IMAGE}:latest"
           else
             VERSION="${BASE_VERSION}-rc.${GITHUB_RUN_NUMBER}"
-            TAGS="${IMAGE_NAME}:${VERSION}"
+            TAGS="${IMAGE}:${VERSION}"
           fi
 
           echo "date=${DATE}" >> "$GITHUB_OUTPUT"
@@ -59,6 +61,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
+          registry: ${{ env.REGISTRY }}
           username: ${{ secrets.QUAYIO_USERNAME }}
           password: ${{ secrets.QUAYIO_TOKEN }}
 

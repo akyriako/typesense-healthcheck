@@ -74,10 +74,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
-            VERSION=${{ steps.meta.outputs.version }}
-            COMMIT=${{ steps.meta.outputs.commit }}
-            DATE=${{ steps.meta.outputs.date }}
-            BUILT_BY=github-actions
+            BIN_VERSION=${{ steps.meta.outputs.version }}
+            BIN_GIT_COMMIT=${{ steps.meta.outputs.commit }}
+            BIN_BUILD_DATE=${{ steps.meta.outputs.date }}
             DIRTY=false
 
       - name: Create git tag

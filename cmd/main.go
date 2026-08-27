@@ -67,7 +67,8 @@ func main() {
 	server := &http.Server{Addr: fmt.Sprintf(":%d", config.HealthCheckPort)}
 
 	go func() {
-		logger.Info("starting typesense healthcheck server...", "port", config.HealthCheckPort, "version", version.Version, "commit", version.Commit)
+		v := version.GetBuildInfo()
+		logger.Info("starting typesense healthcheck server...", "port", config.HealthCheckPort, "version", fmt.Sprintf("%s+%s", v.Version, v.Commit), "buildDate", v.BuildDate, "goVersion", v.GoVersion)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error(fmt.Sprintf("error starting server: %v", err))
 			os.Exit(-1)
@@ -148,6 +149,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	v := version.GetBuildInfo()
 	data := struct {
 		Title   string
 		Logo    string
@@ -156,8 +158,8 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		Title:   "Typesense Healthcheck",
 		Logo:    config.Logo,
-		Version: version.Version,
-		Commit:  version.Commit,
+		Version: v.Version,
+		Commit:  v.Commit,
 	}
 
 	if err := tmpl.Execute(w, data); err != nil {
@@ -169,11 +171,11 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 func versionHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	v := version.GetBuildInfo()
 	json.NewEncoder(w).Encode(map[string]string{
-		"version": version.Version,
-		"commit":  version.Commit,
-		"date":    version.Date,
-		"builtBy": version.BuiltBy,
-		"dirty":   version.Dirty,
+		"version":   v.Version,
+		"commit":    v.Commit,
+		"date":      v.BuildDate,
+		"goVersion": v.GoVersion,
 	})
 }

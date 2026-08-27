@@ -1,32 +1,52 @@
 # Configuration variables
 REGISTRY ?= quay.io/akyriako#$(shell docker info | sed '/Username:/!d;s/.* //')
 IMAGE_NAME ?= typesense-healthcheck
-TAG ?= 0.2.0
+TAG ?= 0.3.0
 DOCKERFILE ?= Dockerfile
 PLATFORMS ?= linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
 DOCKERX_BUILDER ?= typesense-healthcheck-builder
 
-ITERATION ?= 1
+ITERATION ?= 2
 TARGET_ENV ?= dev
 VERSION ?= $(TAG)-$(TARGET_ENV).$(ITERATION)
-COMMIT  ?= $(shell git rev-parse --short HEAD)
-DATE    ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
-BUILT_BY ?= local
-DIRTY   ?= $(shell test -n "$$(git status --porcelain)" && echo true || echo false)
 
-LDFLAGS := -s -w \
-	-X 'github.com/akyriako/typesense-healthcheck/internal/version.Version=$(VERSION)' \
-	-X 'github.com/akyriako/typesense-healthcheck/internal/version.Commit=$(COMMIT)' \
-	-X 'github.com/akyriako/typesense-healthcheck/internal/version.Date=$(DATE)' \
-	-X 'github.com/akyriako/typesense-healthcheck/internal/version.BuiltBy=$(BUILT_BY)' \
-	-X 'github.com/akyriako/typesense-healthcheck/internal/version.Dirty=$(DIRTY)'
+#LDFLAGS
+BIN_VERSION ?= $(TAG)-$(TARGET_ENV).$(ITERATION)
+BIN_GIT_COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "none")
+BIN_BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+DIRTY ?= $(shell test -n "$$(git status --porcelain)" && echo true || echo false)
+
+LDFLAGS = -s -w \
+  -X github.com/akyriako/typesense-healthcheck/internal/version.Version=$(BIN_VERSION) \
+  -X github.com/akyriako/typesense-healthcheck/internal/version.Commit=$(BIN_GIT_COMMIT) \
+  -X github.com/akyriako/typesense-healthcheck/internal/version.BuildDate=$(BIN_BUILD_DATE) \
+  -X github.com/akyriako/typesense-healthcheck/internal/version.Dirty=$(DIRTY)
 
 DOCKER_BUILD_ARGS := \
-	--build-arg VERSION=$(VERSION) \
-	--build-arg COMMIT=$(COMMIT) \
-	--build-arg DATE=$(DATE) \
-	--build-arg BUILT_BY=$(BUILT_BY) \
-	--build-arg DIRTY=$(DIRTY)
+  --build-arg BIN_VERSION=$(BIN_VERSION) \
+  --build-arg BIN_GIT_COMMIT=$(BIN_GIT_COMMIT) \
+  --build-arg BIN_BUILD_DATE=$(BIN_BUILD_DATE) \
+  --build-arg DIRTY=$(DIRTY)
+
+#
+#COMMIT  ?= $(shell git rev-parse --short HEAD)
+#DATE    ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+#BUILT_BY ?= local
+#DIRTY   ?= $(shell test -n "$$(git status --porcelain)" && echo true || echo false)
+#
+#LDFLAGS := -s -w \
+#	-X 'github.com/akyriako/typesense-healthcheck/internal/version.Version=$(VERSION)' \
+#	-X 'github.com/akyriako/typesense-healthcheck/internal/version.Commit=$(COMMIT)' \
+#	-X 'github.com/akyriako/typesense-healthcheck/internal/version.Date=$(DATE)' \
+#	-X 'github.com/akyriako/typesense-healthcheck/internal/version.BuiltBy=$(BUILT_BY)' \
+#	-X 'github.com/akyriako/typesense-healthcheck/internal/version.Dirty=$(DIRTY)'
+#
+#DOCKER_BUILD_ARGS := \
+#	--build-arg VERSION=$(VERSION) \
+#	--build-arg COMMIT=$(COMMIT) \
+#	--build-arg DATE=$(DATE) \
+#	--build-arg BUILT_BY=$(BUILT_BY) \
+#	--build-arg DIRTY=$(DIRTY)
 
 build:
 	@echo "Building Go binary with flags..."

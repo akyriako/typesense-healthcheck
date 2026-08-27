@@ -10,20 +10,18 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-ARG VERSION=dev
-ARG COMMIT=none
-ARG DATE=unknown
-ARG BUILT_BY=local
-ARG DIRTY=unknown
+ARG BIN_VERSION=dev
+ARG BIN_GIT_COMMIT=unknown
+ARG BIN_BUILD_DATE=unknown
+ARG DIRTY=false
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath \
   -ldflags="-s -w \
-  -X github.com/akyriako/typesense-healthcheck/internal/version.Version=${VERSION} \
-  -X github.com/akyriako/typesense-healthcheck/internal/version.Commit=${COMMIT} \
-  -X github.com/akyriako/typesense-healthcheck/internal/version.Date=${DATE} \
-  -X github.com/akyriako/typesense-healthcheck/internal/version.BuiltBy=${BUILT_BY} \
-  -X github.com/akyriako/typesense-healthcheck/internal/version.Dirty=${DIRTY}" \
+      -X github.com/akyriako/typesense-healthcheck/internal/version.Version=${BIN_VERSION} \
+      -X github.com/akyriako/typesense-healthcheck/internal/version.Commit=${BIN_GIT_COMMIT} \
+      -X github.com/akyriako/typesense-healthcheck/internal/version.BuildDate=${BIN_BUILD_DATE} \
+      -X github.com/akyriako/typesense-healthcheck/internal/version.Dirty=${DIRTY}" \
   -o typesense-healthcheck ./cmd
 
 # Stage 2: Package

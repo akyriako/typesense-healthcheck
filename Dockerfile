@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM golang:1.24 AS builder
+FROM golang:1.26.10 AS builder
 
 WORKDIR /app
 
@@ -27,7 +27,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath \
   -o typesense-healthcheck ./cmd
 
 # Stage 2: Package
-FROM alpine:3.21
+FROM alpine:3.24.3
 
 # Install certificates for HTTPS
 RUN apk --no-cache add ca-certificates

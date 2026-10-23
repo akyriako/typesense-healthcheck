@@ -32,3 +32,9 @@ go.work.sum
 # .vscode/
 /cmd/nodes
 /scripts
+/.idea/.gitignore
+/.idea/go.imports.xml
+/.idea/modules.xml
+/cmd/typesense-healthcheck
+/.idea/typesense-healthcheck.iml
+/.idea/vcs.xml

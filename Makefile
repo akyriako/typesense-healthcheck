@@ -1,7 +1,7 @@
 # Configuration variables
 REGISTRY ?= quay.io/akyriako#$(shell docker info | sed '/Username:/!d;s/.* //')
 IMAGE_NAME ?= typesense-healthcheck
-TAG ?= 0.2.0
+TAG ?= 0.2.1
 DOCKERFILE ?= Dockerfile
 PLATFORMS ?= linux/amd64,linux/arm64,linux/s390x,linux/ppc64le
 DOCKERX_BUILDER ?= typesense-healthcheck-builder
@@ -39,7 +39,7 @@ docker-builder:
 
 docker-build: docker-builder
 	@echo "Building Docker image $(REGISTRY)/$(IMAGE_NAME):$(VERSION)..."
-	docker buildx build --load \
+	docker buildx build --pull --push --no-cache --load \
 		--builder ${DOCKERX_BUILDER} \
 		$(DOCKER_BUILD_ARGS) \
 		-t $(REGISTRY)/$(IMAGE_NAME):$(VERSION) \
@@ -47,7 +47,7 @@ docker-build: docker-builder
 
 docker-push: docker-builder
 	@echo "Pushing Docker image $(REGISTRY)/$(IMAGE_NAME):$(VERSION)..."
-	docker buildx build --push \
+	docker buildx build --push --no-cache \
 		--builder ${DOCKERX_BUILDER} \
 		--platform ${PLATFORMS} \
 		$(DOCKER_BUILD_ARGS) \
